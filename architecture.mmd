@@ -1,0 +1,47 @@
+%%{init: {'theme':'dark'}}%%
+graph TD
+    subgraph User Interface
+        A[Donation Form] -->|Submit| B[Clerk Auth Check]
+        B -->|Authenticated| C[STK Push Initiation]
+        B -->|Not Authenticated| D[Login Redirect]
+        H[Real-Time Dashboard] -->|Subscribe| I[Pusher Events]
+    end
+
+    subgraph Backend Services
+        C --> E[Next.js API Route]
+        E -->|Mpesa Request| F[Mpesa Daraja API]
+        F -->|Callback| G[Ngrok Tunnel]
+        G --> J[Callback Handler]
+        J -->|Update| K[MongoDB]
+        J -->|Trigger| I[Pusher]
+    end
+
+    subgraph Data Flow
+        E -->|1. Validate Session| Clerk
+        E -->|2. Generate Password| MpesaAuth
+        E -->|3. Store Transaction| K
+        F -->|4. Send STK Prompt| L[User's Phone]
+        L -->|5. Enter PIN| F
+        J -->|6. Parse Callback| MpesaParser
+        J -->|7. Verify Signature| Security
+        K -->|8. Fetch Data| H
+    end
+
+    subgraph Security
+        MpesaAuth[[Mpesa Auth]]
+        Security[[Signature Verification]]
+        Clerk[[Clerk Session]]
+        style Security fill:#4CAF50,stroke:#fff
+    end
+
+    subgraph Error Handling
+        ErrorDB[(Error Logging)]
+        F -->|Timeout| ErrorDB
+        G -->|Invalid Callback| ErrorDB
+        J -->|Validation Failed| ErrorDB
+        style ErrorDB fill:#ff4444,stroke:#fff
+    end
+
+    style UserInterface fill:#2d2d2d,stroke:#666
+    style BackendServices fill:#1a237e,stroke:#666
+    style DataFlow fill:#004d40,stroke:#666
